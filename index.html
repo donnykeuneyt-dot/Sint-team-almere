@@ -1,0 +1,111 @@
+// Functie om NPC te maken (zelfde als speler)
+function createNPC(color = 0x00ff00) {
+  const npc = createCharacter(color);
+  npc.isWalking = false;
+  npc.walkCycle = 0;
+  npc.direction = new THREE.Vector3(
+    (Math.random() - 0.5) * 0.02,
+    0,
+    (Math.random() - 0.5) * 0.02
+  );
+  npc.health = 3;
+  return npc;
+}
+
+const npcs = [];
+const walkingNpcsGroup = new THREE.Group();  // groep voor voetgangers
+scene.add(walkingNpcsGroup);
+
+// Spawn voetgangers NPC's los over terrein
+for(let i = 0; i < 10; i++) {
+  const npc = createNPC();
+  npc.position.set(
+    (Math.random() - 0.5) * 80,
+    0,
+    (Math.random() - 0.5) * 80
+  );
+  walkingNpcsGroup.add(npc);
+  npcs.push(npc);
+}
+
+// Maak auto's en NPC-bestuurders
+const cars = [];
+const carPositions = [new THREE.Vector3(-10, 0, 0), new THREE.Vector3(10, 0, -20)];
+
+// Voor elke auto maken we ook een NPC-bestuurder die met auto meebeweegt
+carPositions.forEach(pos => {
+  const car = createCar(0x0000ff);
+  car.position.copy(pos);
+  scene.add(car);
+  cars.push(car);
+
+  const driver = createNPC(0x007700);
+  driver.position.copy(pos);
+  scene.add(driver);
+  car.npc = driver;
+  npcs.push(driver);
+});
+
+// In de animatielus:
+
+function moveWalkingNpcs(delta) {
+  npcs.forEach(npc => {
+    if(!npc.parent || npc.parent !== walkingNpcsGroup) return; // alleen voetgangers los van auto's
+
+    npc.position.addScaledVector(npc.direction, delta * 60);
+
+    // Grenzen waar NPC mag lopen
+    const boundary = 40;
+    if (npc.position.x > boundary || npc.position.x < -boundary)
+      npc.direction.x *= -1;
+    if (npc.position.z > boundary || npc.position.z < -boundary)
+      npc.direction.z *= -1;
+
+    // Animate loop armen/benen
+    npc.walkCycle += delta * 6;
+    const offset = Math.sin(npc.walkCycle);
+    npc.children.forEach( (child, i) => {
+      if(i === 2 || i ===3) child.rotation.x = offset * 0.4; // armen
+      if(i === 4 || i ===5) child.rotation.x = -offset * 0.4; // benen
+    });
+  });
+}
+
+function moveCarDrivers() {
+  cars.forEach(car => {
+    if(car.npc){
+      car.npc.position.copy(car.position).add(new THREE.Vector3(0, 0, 0)); // bestuurder zit in auto, position gelijk
+      car.npc.rotation.copy(car.rotation);
+      // NPC zit stil: armen en benen bewegen nauwelijks (rustestand)
+      car.npc.children.forEach((child, i) => {
+        if(i >= 2) child.rotation.x = 0;
+      });
+    }
+  });
+}
+
+// In animate functie roep je nu ook aan:
+function animate() {
+  requestAnimationFrame(animate);
+
+  // delta tijd
+  const delta = clock.getDelta();
+
+  // player & input beweging
+  movePlayer(delta);
+
+  // loopende voetgangers
+  moveWalkingNpcs(delta);
+
+  // auto's bewegen (indien besturing)
+  moveCar(delta);
+
+  // NPC bestuurders auto updaten
+  moveCarDrivers();
+
+  // camera volgen
+  chaseCam.update(inCar && currentCar ? currentCar : player);
+
+  renderer.render(scene, camera);
+}
+animate();
