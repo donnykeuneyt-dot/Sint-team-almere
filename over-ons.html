@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Over Ons | Sint-Team-Almere</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #1a0d05 0%, #3d1b0a 50%, #8B4513 100%);
+            color:#2c1810;
+            line-height:1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #8B0000 0%, #B22222 70%, #DC143C 100%);
+            color:#fff;
+            padding:1rem 0;
+            position:sticky;
+            top:0;
+            z-index:100;
+            box-shadow:0 8px 25px rgba(0,0,0,0.4);
+        }
+        nav {
+            max-width:1200px;
+            margin:0 auto;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:0 2rem;
+        }
+        .logo-wrap {
+            display:flex;
+            align-items:center;
+            gap:0.8rem;
+        }
+        .logo-wrap img {
+            height:50px;
+            width:auto;
+            border-radius:8px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.4);
+        }
+        .logo-text {
+            font-size:1.6rem;
+            font-weight:bold;
+            text-shadow:2px 2px 4px rgba(0,0,0,0.7);
+        }
+        .nav-links a {
+            color:#fff;
+            text-decoration:none;
+            margin-left:2rem;
+            font-weight:500;
+            padding:0.5rem 1rem;
+            border-radius:25px;
+            transition:all 0.3s;
+        }
+        .nav-links a:hover {
+            background:rgba(255,215,0,0.2);
+            color:#FFD700;
+        }
+        main {
+            max-width:1100px;
+            margin:3rem auto;
+            background:rgba(255,255,255,0.97);
+            border-radius:25px;
+            padding:3rem 2rem 3.5rem;
+            box-shadow:0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1, h2 {
+            text-align:center;
+            color:#8B0000;
+            text-shadow:2px 2px 4px rgba(0,0,0,0.25);
+        }
+        h1 { font-size:2.7rem; margin-bottom:0.5rem; }
+        h2 { font-size:2rem; margin:2.5rem 0 1.5rem; }
+        .subtitle {
+            text-align:center;
+            margin-bottom:2.5rem;
+            color:#5a3420;
+        }
+        .about-text {
+            font-size:1.05rem;
+            margin-bottom:1.5rem;
+        }
+        .highlight-box {
+            background:linear-gradient(135deg,#FFF8DC,#F0E68C);
+            border-left:5px solid #DAA520;
+            padding:1.2rem 1.5rem;
+            border-radius:15px;
+            margin-bottom:2rem;
+        }
+        .team-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:1.8rem;
+            margin-top:1.5rem;
+        }
+        .member {
+            background:#FFFDF7;
+            border-radius:20px;
+            padding:1.5rem 1.2rem;
+            text-align:center;
+            box-shadow:0 8px 20px rgba(0,0,0,0.12);
+        }
+        .member-role {
+            font-size:0.9rem;
+            color:#B22222;
+            font-weight:700;
+            margin-bottom:0.3rem;
+            text-transform:uppercase;
+            letter-spacing:0.05em;
+        }
+        .member-name {
+            font-size:1.3rem;
+            font-weight:bold;
+            margin-bottom:0.4rem;
+        }
+        .member-desc {
+            font-size:0.95rem;
+            color:#4b2a18;
+        }
+        .badge {
+            display:inline-block;
+            background:#B22222;
+            color:#fff;
+            padding:0.35rem 0.8rem;
+            border-radius:999px;
+            font-size:0.8rem;
+            margin-bottom:0.5rem;
+        }
+        .experience-list {
+            list-style:none;
+            padding-left:0;
+        }
+        .experience-list li {
+            padding:0.35rem 0;
+            position:relative;
+            padding-left:1.4rem;
+        }
+        .experience-list li::before {
+            content:"•";
+            color:#B22222;
+            position:absolute;
+            left:0;
+            top:0;
+        }
+        .cta-box {
+            margin-top:3rem;
+            text-align:center;
+            padding:1.8rem 1rem;
+            border-radius:20px;
+            background:linear-gradient(135deg,#FFD700,#FFA500);
+            box-shadow:0 10px 30px rgba(0,0,0,0.25);
+        }
+        .cta-box p {
+            margin-bottom:1rem;
+            font-size:1.1rem;
+            color:#3b220f;
+        }
+        .cta-btn {
+            display:inline-block;
+            background:#B22222;
+            color:#fff;
+            padding:0.9rem 2rem;
+            border-radius:999px;
+            text-decoration:none;
+            font-weight:bold;
+            font-size:1.05rem;
+            transition:all 0.3s;
+        }
+        .cta-btn:hover {
+            background:#8B0000;
+            transform:translateY(-2px);
+            box-shadow:0 8px 20px rgba(0,0,0,0.25);
+        }
+        footer {
+            text-align:center;
+            color:#fff;
+            font-size:0.95rem;
+            padding:1.5rem 1rem 2rem;
+        }
+        @media (max-width:600px){
+            main { padding:2rem 1.3rem 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <nav>
+        <div class="logo-wrap">
+            <img src="logo.png" alt="Logo Sint-Team-Almere">
+            <div class="logo-text">Sint-Team-Almere</div>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="booking.html">Boeken</a>
+            <a href="over-ons.html">Over ons</a>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <h1>Over Sint-Team-Almere</h1>
+    <p class="subtitle">Het Sinterklaasteam voor Almere en omgeving</p>
+
+    <section>
+        <div class="about-text">
+            Sint-Team-Almere is een professioneel Sinterklaasteam dat zorgt voor warme, gezellige en georganiseerde bezoeken bij gezinnen, scholen en bedrijven in Almere en omstreken.  
+        </div>
+        <div class="highlight-box">
+            Wij combineren een nette, betrouwbare werkwijze met veel humor, improvisatie en persoonlijke aandacht voor ieder kind.  
+        </div>
+    </section>
+
+    <section>
+        <h2>Maak kennis met het team</h2>
+        <div class="team-grid">
+            <div class="member">
+                <div class="badge">Sinterklaas</div>
+                <div class="member-name">Sinterklaas</div>
+                <p class="member-desc">
+                    Onze Sint ontvangt ieder jaar kinderen in Almere met persoonlijke verhalen, aandacht voor ieder gezin en een rustige, vertrouwde uitstraling.
+                </p>
+            </div>
+            <div class="member">
+                <div class="member-role">Piet</div>
+                <div class="member-name">Lol Piet</div>
+                <p class="member-desc">
+                    De vrolijke grappenmaker van het team, altijd in voor een lach, een gek dansje en gezellige interactie met de kinderen.
+                </p>
+            </div>
+            <div class="member">
+                <div class="member-role">Hoofdpiet</div>
+                <div class="member-name">Hoofdpiet</div>
+                <p class="member-desc">
+                    Zorgt dat alles tot in de puntjes is geregeld: planning, cadeautjes en draaiboek. De rechterhand van Sinterklaas.
+                </p>
+            </div>
+            <div class="member">
+                <div class="member-role">Piet</div>
+                <div class="member-name">Snoep Piet</div>
+                <p class="member-desc">
+                    Verteelt pepernoten en lekkers, let op allergieën en zorgt dat ieder kind iets lekkers krijgt zonder chaos.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Ervaring & optredens</h2>
+        <p class="about-text">
+            Sint-Team-Almere heeft in de afgelopen jaren op diverse plekken voor onvergetelijke Sinterklaasmomenten gezorgd.
+        </p>
+        <ul class="experience-list">
+            <li>Sinterklaasviering op Basisschool Crescendo.</li>
+            <li>Meerdere jaren intocht en optredens in en rond Winkelcentrum Oostermeent.</li>
+            <li>Honderden huisbezoeken bij gezinnen in Almere en omgeving.</li>
+            <li>Kleine en middelgrote evenementen voor verenigingen, buurthuizen en bedrijven.</li>
+        </ul>
+    </section>
+
+    <div class="cta-box">
+        <p>Willen jullie Sinterklaas en zijn Pieten ook op bezoek hebben bij jullie huis, school of evenement?</p>
+        <a href="booking.html" class="cta-btn">📅 Boek Sint-Team-Almere</a>
+    </div>
+</main>
+
+<footer>
+    © 2025 Sint-Team-Almere – Professionele Sinterklaasbezoeken in Almere en omgeving.
+</footer>
+</body>
+</html>

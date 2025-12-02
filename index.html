@@ -1,111 +1,340 @@
-// Functie om NPC te maken (zelfde als speler)
-function createNPC(color = 0x00ff00) {
-  const npc = createCharacter(color);
-  npc.isWalking = false;
-  npc.walkCycle = 0;
-  npc.direction = new THREE.Vector3(
-    (Math.random() - 0.5) * 0.02,
-    0,
-    (Math.random() - 0.5) * 0.02
-  );
-  npc.health = 3;
-  return npc;
-}
-
-const npcs = [];
-const walkingNpcsGroup = new THREE.Group();  // groep voor voetgangers
-scene.add(walkingNpcsGroup);
-
-// Spawn voetgangers NPC's los over terrein
-for(let i = 0; i < 10; i++) {
-  const npc = createNPC();
-  npc.position.set(
-    (Math.random() - 0.5) * 80,
-    0,
-    (Math.random() - 0.5) * 80
-  );
-  walkingNpcsGroup.add(npc);
-  npcs.push(npc);
-}
-
-// Maak auto's en NPC-bestuurders
-const cars = [];
-const carPositions = [new THREE.Vector3(-10, 0, 0), new THREE.Vector3(10, 0, -20)];
-
-// Voor elke auto maken we ook een NPC-bestuurder die met auto meebeweegt
-carPositions.forEach(pos => {
-  const car = createCar(0x0000ff);
-  car.position.copy(pos);
-  scene.add(car);
-  cars.push(car);
-
-  const driver = createNPC(0x007700);
-  driver.position.copy(pos);
-  scene.add(driver);
-  car.npc = driver;
-  npcs.push(driver);
-});
-
-// In de animatielus:
-
-function moveWalkingNpcs(delta) {
-  npcs.forEach(npc => {
-    if(!npc.parent || npc.parent !== walkingNpcsGroup) return; // alleen voetgangers los van auto's
-
-    npc.position.addScaledVector(npc.direction, delta * 60);
-
-    // Grenzen waar NPC mag lopen
-    const boundary = 40;
-    if (npc.position.x > boundary || npc.position.x < -boundary)
-      npc.direction.x *= -1;
-    if (npc.position.z > boundary || npc.position.z < -boundary)
-      npc.direction.z *= -1;
-
-    // Animate loop armen/benen
-    npc.walkCycle += delta * 6;
-    const offset = Math.sin(npc.walkCycle);
-    npc.children.forEach( (child, i) => {
-      if(i === 2 || i ===3) child.rotation.x = offset * 0.4; // armen
-      if(i === 4 || i ===5) child.rotation.x = -offset * 0.4; // benen
-    });
-  });
-}
-
-function moveCarDrivers() {
-  cars.forEach(car => {
-    if(car.npc){
-      car.npc.position.copy(car.position).add(new THREE.Vector3(0, 0, 0)); // bestuurder zit in auto, position gelijk
-      car.npc.rotation.copy(car.rotation);
-      // NPC zit stil: armen en benen bewegen nauwelijks (rustestand)
-      car.npc.children.forEach((child, i) => {
-        if(i >= 2) child.rotation.x = 0;
-      });
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sint-Team-Almere | Professionele Sinterklaasbezoeken</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --rood:#9b1515;
+      --rood-diep:#5a0d0d;
+      --goud:#ffd700;
+      --goud-warm:#d4a017;
+      --blauw:#2563eb;     /* subtiele accentkleur */
+      --creme:#fff8dc;
+      --bruin:#4b2a18;
+      --text:#2c1a12;
+      --wit:#ffffff;
     }
-  });
-}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family:"Crimson Text","Georgia",serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 500px at 10% 0%, rgba(255,215,0,0.08), transparent 60%),
+        linear-gradient(180deg, var(--rood) 0%, var(--rood-diep) 80%, #3b0c0c 100%);
+    }
 
-// In animate functie roep je nu ook aan:
-function animate() {
-  requestAnimationFrame(animate);
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:100;
+      background:linear-gradient(135deg,var(--rood) 0%, #b22222 60%, #c72b2b 100%);
+      border-bottom:4px solid var(--goud);
+      box-shadow:0 12px 30px rgba(0,0,0,0.35);
+    }
+    nav{
+      max-width:1200px; margin:0 auto;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0.9rem 1.5rem;
+    }
+    .logo-wrap{display:flex; align-items:center; gap:0.9rem}
+    .logo-wrap img{
+      height:56px; width:auto; border-radius:12px;
+      border:2px solid rgba(255,215,0,0.6);
+      box-shadow:0 6px 16px rgba(0,0,0,0.35); background:#fff;
+    }
+    .brand{
+      font-family:"Caveat", cursive;
+      font-size:2.2rem; line-height:1; color:var(--goud);
+      text-shadow:2px 3px 6px rgba(0,0,0,0.6);
+    }
+    .nav-links{display:flex; gap:0.6rem; flex-wrap:wrap}
+    .nav-links a{
+      color:#fff; text-decoration:none; font-weight:600; font-size:1rem;
+      padding:0.55rem 0.9rem; border-radius:999px; border:1px solid transparent;
+      transition:all .2s ease;
+    }
+    .nav-links a:hover{
+      color:var(--goud); background:rgba(255,215,0,0.15);
+      border-color:rgba(255,215,0,0.35);
+    }
 
-  // delta tijd
-  const delta = clock.getDelta();
+    /* Hero */
+    .hero{
+      position:relative; overflow:hidden;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.6)),
+        url('hero.jpg') center/cover no-repeat;
+      /* Tip: vervang hero.jpg met een brede foto (Sint + Pieten) */
+      color:var(--wit);
+      padding:4.5rem 1.5rem;
+      border-bottom:4px dashed rgba(255,215,0,0.6);
+    }
+    .hero-inner{
+      max-width:1100px; margin:0 auto;
+      display:grid; grid-template-columns: minmax(0,1.2fr) minmax(0,0.8fr);
+      gap:2rem; align-items:center;
+    }
+    @media (max-width:900px){ .hero-inner{grid-template-columns:1fr; text-align:center} }
+    .hero-title{
+      font-family:"Caveat", cursive; font-size:3.2rem; margin:0 0 0.6rem 0; color:var(--goud);
+      text-shadow:3px 4px 10px rgba(0,0,0,0.7);
+    }
+    .hero-sub{font-size:1.2rem; color:#f7e7cf; margin:0 0 1.4rem 0}
+    .hero-pills{display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:1.6rem}
+    .pill{
+      color:var(--goud); border:1px solid rgba(255,215,0,0.6);
+      background:rgba(0,0,0,0.35); border-radius:999px; padding:0.45rem 0.9rem; font-size:0.95rem;
+    }
+    .hero-cta{display:flex; align-items:center; gap:0.9rem; flex-wrap:wrap}
+    .btn-primary{
+      background:linear-gradient(135deg,var(--goud), #ffa500);
+      color:#3b220f; border:none; border-radius:999px;
+      padding:0.95rem 1.8rem; font-weight:700; text-decoration:none; font-size:1.05rem;
+      box-shadow:0 12px 28px rgba(0,0,0,0.45); transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .btn-primary:hover{ transform:translateY(-3px); box-shadow:0 18px 45px rgba(0,0,0,0.55) }
+    .hero-note{ font-size:0.98rem; color:#f2e0bf }
 
-  // player & input beweging
-  movePlayer(delta);
+    .hero-side{
+      background:rgba(0,0,0,0.35); border:1px solid rgba(255,215,0,0.4);
+      border-radius:18px; padding:1.4rem;
+    }
+    .hero-side-title{
+      font-weight:700; color:var(--goud); font-size:1.25rem; margin-bottom:0.7rem;
+    }
+    .hero-list{list-style:none; padding:0; margin:0}
+    .hero-list li{ color:#fff; margin-bottom:0.55rem }
 
-  // loopende voetgangers
-  moveWalkingNpcs(delta);
+    /* Sections */
+    section{ max-width:1100px; margin:0 auto; padding:3rem 1.5rem }
+    h2{
+      font-family:"Caveat", cursive; font-size:2.4rem; text-align:center;
+      margin:0 0 2rem 0; color:var(--goud);
+      text-shadow:2px 3px 8px rgba(0,0,0,0.5);
+    }
 
-  // auto's bewegen (indien besturing)
-  moveCar(delta);
+    /* Features */
+    .features{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.5rem;
+    }
+    .card{
+      background:#fff; border:3px solid rgba(218,165,32,0.35);
+      border-radius:16px; padding:1.4rem 1.2rem;
+      box-shadow:0 12px 28px rgba(0,0,0,0.18); transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover{ transform:translateY(-4px); box-shadow:0 18px 40px rgba(0,0,0,0.23) }
+    .card h3{ color:var(--rood); margin:0 0 0.5rem 0; font-size:1.25rem }
+    .card p{ color:var(--bruin); margin:0 }
 
-  // NPC bestuurders auto updaten
-  moveCarDrivers();
+    /* About strip */
+    .about-strip{
+      background:linear-gradient(135deg,var(--creme),#f3e7b2);
+      border-left:6px solid var(--goud-warm);
+      border-radius:18px; padding:1.2rem 1.3rem; color:var(--bruin);
+      box-shadow:0 10px 26px rgba(0,0,0,0.18); font-size:1.05rem;
+    }
 
-  // camera volgen
-  chaseCam.update(inCar && currentCar ? currentCar : player);
+    /* Galerij */
+    .galerij-intro{ text-align:center; color:#f7e7cf; margin-bottom:1rem }
+    .foto-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;
+    }
+    .foto-grid figure{
+      margin:0; background:#fff; border:2px solid rgba(255,215,0,0.35);
+      border-radius:14px; overflow:hidden; box-shadow:0 8px 22px rgba(0,0,0,0.2);
+    }
+    .foto-grid img{ width:100%; height:220px; object-fit:cover; display:block }
+    .foto-grid figcaption{
+      padding:0.6rem 0.8rem; font-size:0.95rem; color:#593622; background:#fff;
+    }
 
-  renderer.render(scene, camera);
-}
-animate();
+    /* Testimonials */
+    .testimonials{
+      background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      border-top:3px solid rgba(255,215,0,0.35);
+      border-bottom:3px solid rgba(255,215,0,0.35);
+      padding:2.2rem 1.5rem; border-radius:16px;
+    }
+    .quote{
+      background:var(--creme); border-left:6px solid var(--goud);
+      margin:0 0 1rem 0; padding:1rem 1rem; font-style:italic; color:#3a2416; border-radius:12px;
+    }
+    .quote strong{ font-style:normal; color:#8b0000 }
+
+    /* Info blokken */
+    .info-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem;
+    }
+    .info{
+      background:#fff; border:2px solid rgba(37,99,235,0.2);
+      border-radius:14px; padding:1rem 1rem; box-shadow:0 8px 22px rgba(0,0,0,0.15);
+    }
+    .info h3{ margin:0 0 0.5rem 0; color:var(--blauw); font-size:1.2rem }
+    .info p{ margin:0; color:#402414 }
+
+    /* CTA bottom */
+    .bottom-cta{ text-align:center }
+    .bottom-cta p{ color:#f7e7cf; margin:0 0 1rem 0; font-size:1.1rem }
+
+    /* Footer */
+    footer{
+      text-align:center; color:#fff; font-size:0.98rem;
+      padding:2rem 1rem; background:var(--rood);
+      border-top:4px solid var(--goud);
+    }
+
+    /* Responsive tweaks */
+    @media (max-width:600px){
+      .brand{ font-size:1.9rem }
+      .logo-wrap img{ height:50px }
+      .hero-title{ font-size:2.4rem }
+      section{ padding:2.2rem 1rem }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <nav>
+      <div class="logo-wrap">
+        <img src="logo.png" alt="Logo Sint-Team-Almere">
+        <div class="brand">Sint‑Team‑Almere</div>
+      </div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="over-ons.html">Over ons</a>
+        <a href="booking.html">Boeken</a>
+        <a href="galerij.html">Galerij</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1 class="hero-title">Professionele Sinterklaasbezoeken in Almere</h1>
+        <p class="hero-sub">
+          Betrouwbaar, warm en persoonlijk – bij gezinnen, scholen en bedrijven. Met aandacht voor ieder kind.
+        </p>
+        <div class="hero-pills">
+          <span class="pill">Huisbezoeken</span>
+          <span class="pill">Basisscholen & BSO</span>
+          <span class="pill">Winkelcentrum Oostermeent</span>
+          <span class="pill">Evenementen & bedrijven</span>
+        </div>
+        <div class="hero-cta">
+          <a href="booking.html" class="btn-primary">Boek direct een bezoek</a>
+          <span class="hero-note">Bezoeken van 20–60 minuten, heldere afspraken en een rustige planning.</span>
+        </div>
+      </div>
+      <aside class="hero-side">
+        <div class="hero-side-title">Waarom Sint‑Team‑Almere?</div>
+        <ul class="hero-list">
+          <li>• Ervaring met Basisschool Crescendo en meerdere intochten.</li>
+          <li>• Jaarlijkse optredens bij Winkelcentrum Oostermeent.</li>
+          <li>• Veel huisbezoeken in Almere en omgeving.</li>
+          <li>• Team met Sinterklaas, Lol Piet, Hoofdpiet en Snoep Piet.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section>
+    <h2>Wat wij voor jullie doen</h2>
+    <div class="features">
+      <div class="card">
+        <h3>🏠 Huisbezoeken</h3>
+        <p>Een warm, persoonlijk bezoek van Sinterklaas en Pieten bij gezinnen thuis, afgestemd op de kinderen en jullie wensen.</p>
+      </div>
+      <div class="card">
+        <h3>📚 Scholen & BSO</h3>
+        <p>Georganiseerde optredens met aandacht voor planning, rust in de klas en duidelijke afspraken met het team.</p>
+      </div>
+      <div class="card">
+        <h3>🏢 Bedrijven & Evenementen</h3>
+        <p>Professionele acts voor winkelcentra, verenigingen en bedrijven – onder andere in en rond Winkelcentrum Oostermeent.</p>
+      </div>
+      <div class="card">
+        <h3>⏰ Strakke planning</h3>
+        <p>Bezoeken van 20, 30, 45 of 60 minuten met heldere maxima per aantal kinderen, voor een overzichtelijk programma.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- About strip -->
+  <section>
+    <div class="about-strip">
+      Sint‑Team‑Almere combineert een nette, betrouwbare werkwijze met humor en warmte. Op de Over‑ons pagina stellen
+      Sinterklaas, Lol Piet, Hoofdpiet en Snoep Piet zich uitgebreid aan jullie voor.
+    </div>
+<section>
+  <h2>Onze momenten</h2>
+  <p class="galerij-intro">Een indruk van optredens en huisbezoeken in Almere en omgeving.</p>
+  <div class="foto-grid">
+    <figure>
+      <img src="school.jpg" alt="Sinterklaas op school">
+      <figcaption>Optreden op basisschool – rust en plezier in de klas.</figcaption>
+    </figure>
+    <figure>
+      <img src="huisbezoek.jpg" alt="Huisbezoek bij gezin">
+      <figcaption>Huisbezoek – persoonlijke aandacht voor ieder kind.</figcaption>
+    </figure>
+    <figure>
+      <img src="winkelcentrum.jpg" alt="Winkelcentrum Oostermeent">
+      <figcaption>Winkelcentrum Oostermeent – jaarlijkse optredens.</figcaption>
+    </figure>
+  </div>
+</section>
+
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <h2>Wat mensen zeggen</h2>
+    <div class="quote">“De kinderen waren dolblij, alles liep perfect en ontspannen.” <strong>– Basisschool Crescendo</strong></div>
+    <div class="quote">“Een warm en gezellig huisbezoek, precies zoals we hoopten.” <strong>– Familie Jansen</strong></div>
+    <div class="quote">“Professioneel en plezierig, duidelijke afspraken en fijne communicatie.” <strong>– Vereniging Almere</strong></div>
+  </section>
+
+  <!-- Praktische info -->
+  <section>
+    <h2>Praktische informatie</h2>
+    <div class="info-grid">
+      <div class="info">
+        <h3>Bezoekduur</h3>
+        <p>20, 30, 45 of 60 minuten per locatie, afgestemd op het aantal kinderen en het gewenste programma.</p>
+      </div>
+      <div class="info">
+        <h3>Regio</h3>
+        <p>Almere en omliggende plaatsen. Voor evenementen buiten Almere in overleg.</p>
+      </div>
+      <div class="info">
+        <h3>Team samenstelling</h3>
+        <p>Sinterklaas met Lol Piet, Hoofdpiet en Snoep Piet. Inzet op maat mogelijk.</p>
+      </div>
+      <div class="info">
+        <h3>Afstemming</h3>
+        <p>Vooraf duidelijke afspraken: namen, verhalen, surprises, en eventuele speciale wensen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bottom-cta">
+    <p>Direct een datum reserveren voor jullie Sinterklaasfeest?</p>
+    <a href="booking.html" class="btn-primary">Naar de boekingspagina</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    © 2025 Sint‑Team‑Almere – Sinterklaasbezoeken in Almere en omgeving.
+  </footer>
+
+</body>
+</html>
